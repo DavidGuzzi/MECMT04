@@ -1,0 +1,469 @@
+---
+title: "Análsis Estadístico Multivariado | UTDT"
+author:
+- Alejandra Clemente
+- Maximiliano Mendoza Greco
+date: "Segundo Trimestre 2024"
+output:
+  pdf_document:
+    latex_engine: xelatex
+fontsize: 9pt
+subtitle: Problem Set 0
+---
+
+Resuelva los siguientes ejercicios en R y en Stata.
+
+# Ejercicio 1 
+
+*Abra el archivo Hogar_t403_0.dta, el cual contiene la base de microdatos* 
+*correspondiente al relevamiento realizado en Argentina en el marco de la*
+*Encuesta Permanente de Hogares durante el cuarto trimestre de 2003.*
+
+En primer lugar, limpiamos el directorio y cargamos paquetes.
+
+```{r setup}
+# Nota: en el inicio, para pdf incluir
+# output:
+#   pdf_document:
+#     latex_engine: xelatex
+#
+# para html:
+# output: html_document
+
+rm(list = ls())
+knitr::opts_knit$set(root.dir = "C:/Users/maxig/OneDrive/Escritorio/MAECO/19 - Clases Análisis Estadístico Multivariado/Clases Prácticas 2024/2024 - PS0")
+options(scipen = 999) #Desactivar notacion cientifica
+
+#install.packages("haven")
+#install.packages("tidyverse") 
+#install.packages("labelled")
+
+library("haven")      #esta libreria me permite leer archivos .dta
+library("tidyverse")  #voy a usar esta libreria para manejo de datos
+library("labelled")   # manejo de labels en stata
+library("kableExtra") # tablas en Rmd pdf/html
+library("eeptools")   # funciones para datos administrativos
+library("printr")
+```
+
+
+(a) *¿Qué tipo de variable identifica la vivienda?*
+
+Primero cargamos los datos:
+
+```{r}
+eph <- read_dta("./Hogar_t403_0.dta") #Función de la librería "haven" que me permite cargar bases de datos de STATA
+#eph
+
+#View(eph)
+#View(unlabelled(eph))
+#etiquetas <- var_label(eph)
+```
+
+Y podemos describir la base:
+
+```{r}
+names(eph) #Esta función me devuelve los nombres de las variables
+```
+
+```{r}
+summary(eph) #Esta función me devuelve una serie de estadísticos descriptivos de cada variable
+```
+
+Por el manual de INDEC sabemos que es CODUSU, pero verifiquemos que es un ID con la funcion isid del paquete eeptools:
+
+```{r}
+isid(eph, vars = c("CODUSU")) #Esta función verifica si la variable presenta un valor único para cada fila del data frame
+```
+
+
+(b) *¿Cuántos hogares fueron relevados en total?*
+
+
+```{r}
+# ¿Cuántos valores distintos tienen las combinaciones codusu-nro_hogar?
+eph %>% select(CODUSU,nro_hogar) %>% n_distinct() #Funciones del paquete tidyverse.
+
+# ¿Cuáles son los valores que toma nro_hogar?
+unique(eph$nro_hogar) 
+sum(eph$nro_hogar)
+```
+
+Vemos que hay 12693 codigos de vivienda diferentes, hogares, es decir el mismo numero de hogares que de viviendas (la base ya está filtrada para que esto sea así).
+
+
+(c) *Genere una nueva base de datos (Hogar_t403_1.dta) que reuna únicamente los códigos para distinguir viviendas, hogares, año, trimestre, region y las variables que reflejan la representatividad del hogar, la cantidad de miembros en el hogar, el monto total del ingreso familiar (ITF = ingreso total familiar), y el monto de ingreso per cápita familiar (IPCF).*
+
+
+```{r}
+hogar_t403_1_R <- eph %>% select(CODUSU, nro_hogar, ano4, trimestre, region, pondera, IX_Tot, itf, ipcf) # Creamos el nuevo data frame con las columnas elegidas.
+
+write_dta(hogar_t403_1_R, "./Hogar_t403_1_R.dta") #Guardamos el data frame como una base de datos de STATA.
+
+rm(hogar_t403_1_R) #Código para remover el data frame del global environment
+```
+
+
+
+(d) *Obtenga el monto promedio de ingreso total familiar de los hogares correspondientes al aglomerado Gran Resistencia, que componen la muestra.*
+
+Antes de hacer eso, veamos las etiquetas de la variable de aglomerado. 
+
+```{r}
+val_labels(eph$aglomerado) #Función del paquete "labelled".
+
+ephl <- eph %>% as_factor(only_labelled=TRUE,levels=c("both")) #Me genero un nuevo data frame con los labels
+# ephl
+ephl %>% group_by(aglomerado) %>% count() 
+ephl %>% group_by(aglomerado) %>% count() %>% View()
+```
+Ahora computo lo que quiero
+
+```{r}
+media <- eph %>%  filter(aglomerado==8) %>%  summarize(itf_media_gr = mean(itf))
+```
+
+El ingreso promedio en Gran Resistencia en el 4to trim. de 2003 era de 760.52. Esto es un resultado muestral, en realidad hay que usar el ponderador de la variable "pondera". 
+ 
+```{r , include=FALSE}
+ephl %>%
+  group_by(aglomerado) %>%
+  summarize(itf_media = mean(itf)) %>%
+  arrange(desc(itf_media))
+
+ephl %>%
+  group_by(aglomerado) %>%
+  summarize(itf_media = mean(itf),
+            itf_stdev = sd(itf),
+            itf_p25   = quantile(itf,0.25),
+            itf_p50   = quantile(itf,0.50),
+            itf_p75   = quantile(itf,0.75)
+            ) %>%
+  arrange(desc(itf_media))
+```
+
+
+
+
+# Ejercicio 2
+
+*A partir de la base obtemda en el inciso (c) del ejercicio anterior, construya la matriz \( X_{n \times p} \) (con \( (n > p)\)), cuyas columnas estarán dadas por las variables que representan la cantidad de miembros del hogar, el monto total del ingreso familiar, y el monto de ingreso per cápita familiar, y sus filas por las primeras 600 observaciones.*
+
+(a) *Obtener las matrices \( X',\, X'X, \, XX', (X'X)^{-1}.\) Antes de hacer cuentas considere de qué tamaño deben ser las matrices resultantes.* 
+Estas matrices son muy comunes en estadística y econometría. Computamos \(X\) a partir de los datos y luego las restantes. 
+
+X es de 600 filas por 3 columnas (n=600, p=3), X es de 600*3
+```{r}
+# Con R Base
+X <- as.matrix(eph[1:600,c("IX_Tot","itf","ipcf")]) 
+
+# Con tidyverse
+X <- eph %>% 
+  slice(1:600) %>% 
+  select(c("IX_Tot","itf","ipcf")) %>% 
+  as.matrix()
+  
+dim(X)
+
+#X' (3x600)
+Xt <- t(X)
+
+#X'X
+XtX <- Xt %*% X
+
+#XX'
+XXt <- X %*% Xt
+#XXt %>% View()
+
+#(X'X)^-1
+XtXinv <- solve(XtX) 
+XtXinv 
+```
+
+
+
+(b) *Verifique que, dada la matriz, *
+\[ B = 
+\begin{bmatrix} 
+  1 & 2 & 3 \\
+  4 & 5 & 6 \\
+  7 & 8 & 9 
+\end{bmatrix}\]
+*vale la siguiente igualdad: *
+\[
+(X'X + B)' = (X'X)' + B'.
+\]
+
+Es decir, queremos ver que la traspuesta de una suma es la suma de las traspuestas, pero con un caso particular.
+
+```{r}
+B <- matrix(1:9, nrow=3, byrow=TRUE) 
+B 
+ 
+LHS <- t(XtX + B)
+RHS <- t(XtX) + t(B)
+
+LHS==RHS #Compruebo que efectivamente sean iguales
+
+LHS
+RHS
+```
+
+
+(c) *Obtener la traza y el determinante de la matriz* \(X'X\).
+
+*Definimos una función traza y la usamos par calcular *
+
+```{r}
+traza <- function(M){
+  if(!is.matrix(M)){
+    stop('M tiene que ser una matriz')
+  } else if(dim(M)[1]!=dim(M)[2]){
+    stop('X tiene que ser una matriz cuadrada')
+  } else{
+    return(sum(diag(M)))
+  }
+}
+
+traza(XtX)
+# traza(X)
+traza(B)
+
+# Digresion sobre apply 
+matrices <- list(XtX, XXt, XtXinv, B)
+
+mapply(traza, matrices)
+
+# matrices %>% traza
+matrices %>% mapply(traza, .) 
+matrices %>% mapply(traza, .) %>% as.data.frame()
+matrices %>% mapply(traza, .) %>% as.matrix()
+
+#otra manera de calcular la traza es como la suma de los autovalores
+sum(eigen(XtX)$values)
+sum(eigen(B)$values)
+
+# Determinante
+det(XtX)
+matrices %>% mapply(det, .) %>% as.data.frame()
+
+```
+
+
+(d) *Sea el escalar \(\phi = 1/1000.\) Verifique que *
+\[
+| \phi X'X | = \phi^p | X'X |. 
+\]
+
+Definimos el escalar y hacemos las cuentas. Pensar: cuál es la intuición geométrica de esto? 
+
+```{r}
+phi <- 1/1000
+
+LHS <- det(phi * XtX)
+LHS
+
+RHS <- phi^(dim(X)[2]) * det(XtX)
+RHS
+
+round(LHS)==round(RHS)
+```
+
+
+# Ejercicio 3 
+
+*Dadas las matrices*
+\[ A = 
+\begin{bmatrix} 
+  1 & 2 & 3 \\
+  4 & 5 & 6 \\
+  7 & 8 & 9 
+\end{bmatrix}, 
+\quad
+B = 
+\begin{bmatrix} 
+  23 & 2 \\
+  22 & 15 \\
+  3 & 7 
+\end{bmatrix}, 
+\quad
+C = 
+\begin{bmatrix} 
+  1 & 3  \\
+  2 & 13 
+\end{bmatrix}, 
+\quad
+D =
+\begin{bmatrix} 
+  34 & 25 & 2  \\
+  3  & 14 & 32 
+\end{bmatrix},
+\]
+
+```{r}
+A <- matrix(
+  c(0,2,3,
+    4,5,6,
+    7,8,9),
+  nrow=3, byrow=TRUE) 
+
+B <- matrix(
+  c(23,2,
+    22,15,
+    3,7),
+  nrow=3, byrow=TRUE) 
+
+C <- matrix(
+  c(1,3,
+    2,13),
+  nrow=2, byrow=TRUE) 
+
+
+D <- matrix(
+  c(34,25,2,
+    3,14,32),
+  nrow=2, byrow=TRUE) 
+```
+
+
+(a) *Verificar que*
+\[
+(A+BCD)^{-1} = A^{-1} - A^{-1} B ( D A^{-1} B + C^{-1})^{-1} D A^{-1} 
+\]
+
+Esta identidad se llama **Matrix Inversion Lemma** o **Woodbury's matrix identity** y pueden encontrar la derivación y un resumen de sus aplicaciones en https://en.wikipedia.org/wiki/Woodbury_matrix_identity. Además, nos dice que en general no vale que la inversa de una suma sea la suma de las inversas, sino que nos da una expresión para calcularla (tomar casos particulares con algunas de las matrices como identidad). 
+
+
+```{r}
+LHS <- solve(A + B %*% C %*% D)
+LHS 
+
+Ainv <- solve(A)
+Cinv <- solve(C)
+
+RHS <- Ainv - Ainv %*% B %*% solve(D %*% Ainv %*% B + Cinv) %*% D %*% Ainv
+RHS
+
+round(LHS)==round(RHS)
+```
+
+
+
+(b) *Sea* \(A_{11}) = 
+\begin{bmatrix} 
+  a_{11} & a_{12}  \\
+  a_{21} & a_{22} 
+\end{bmatrix}\) *una partición de la matriz \(A\). Verifique que *
+\[
+(A_{11} + C)^{-1} = C^{-1} (A_{11}^{-1}+C^{-1})^{-1} A_{11}^{-1}    
+\]
+
+```{r}
+A11 <- A[1:2,1:2]
+
+LHS <- solve( A11 + C)
+LHS 
+
+A11inv <- solve(A11) 
+
+RHS <- Cinv %*% solve( A11inv + Cinv) %*% A11inv
+RHS 
+
+LHS==RHS
+```
+
+
+
+# Ejercicio 4 
+
+*Dada la matriz*
+\[
+B=\begin{bmatrix}
+1 & 1 & 2 & 3  & 2 & 5 & 5 & 2 \\
+1 & 2 & 1 & 2  & 1 & 3 & 3 & 6 \\
+1 & 2 & 3 & 2  & 3 & 1 & 5 & 10 \\
+2 & 4 & 4 & 57 & 5 & 7 & 9 & 1 \\
+2 & 5 & 5 & 5  & 5 & 4 & 4 & 2 \\
+3 & 6 & 5 & 5  & 5 & 6 & 5 & 6 \\
+1 & 7 & 4 & 5  & 6 & 7 & 7 & 8 \\
+3 & 8 & 5 & 6  & 3 & 1 & 1 & 8
+\end{bmatrix}
+\]
+*obtenga el determinante y la inversa de la matriz, considerando sus particiones:*
+\[
+B_{11}=
+\begin{bmatrix}
+1 & 1 & 2 & 3  \\
+1 & 2 & 1 & 2  \\
+1 & 2 & 3 & 2  \\
+2 & 4 & 4 & 57
+\end{bmatrix},
+\quad
+B_{12}=
+\begin{bmatrix}
+2 & 5 & 5 & 2 \\
+1 & 3 & 3 & 6 \\
+3 & 1 & 5 & 10 \\
+5 & 7 & 9 & 1 
+\end{bmatrix},
+\quad
+B_{21}=
+\begin{bmatrix}
+2 & 5 & 5 & 5  \\
+3 & 6 & 5 & 5  \\
+1 & 7 & 4 & 5  \\
+3 & 8 & 5 & 6 
+\end{bmatrix},
+\qquad
+B_{22}=
+\begin{bmatrix}
+5 & 4 & 4 & 2 \\
+5 & 6 & 5 & 6 \\
+6 & 7 & 7 & 8 \\
+3 & 1 & 1 & 8
+\end{bmatrix}
+\]
+
+Primero cargamos la matriz y computamos las particiones
+
+
+```{r}
+B <- readxl::read_excel("./Mat4.xlsx")
+B <- as.matrix(B)
+
+B11 <- B[1:4,1:4]
+B12 <- B[1:4,5:8]
+B21 <- B[5:8,1:4]
+B22 <- B[5:8,5:8]
+```
+
+Lo que sigue está basando el resultados de Álgebra Lineal.
+Más detalles acá: https://chrisyeh96.github.io/2021/05/19/schur-complement.html
+
+
+Computamos el determinante usando la formula de Schur para el determinante de 
+matrices particionadas.
+
+
+```{r}
+det(B)
+det(B22) * det(B11-B12 %*% solve(B22) %*% B21)
+```
+
+Computamos la inversa
+
+```{r}
+primer_bloque  <- solve(B11 - B12 %*% solve(B22) %*% B21)
+
+segundo_bloque <- -solve(B11-B12%*%solve(B22)%*%B21)%*%B12%*%solve(B22)
+
+tercer_bloque  <- -solve(B22) %*% B21 %*% solve(B11 - B12 %*% solve(B22) %*% B21)
+
+cuarto_bloque  <- solve(B22) + solve(B22) %*% B21 %*% solve(B11 - B12 %*% solve(B22) %*% B21) %*% B12 %*% solve(B22)
+
+solve(B)
+
+rbind(cbind(primer_bloque,segundo_bloque),cbind(tercer_bloque,cuarto_bloque))
+```
+
+
