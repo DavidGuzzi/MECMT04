@@ -33,3 +33,10 @@ agl_2 = pd.merge(df, agl, left_on='aglomerado', right_on='id')
 agl_2.groupby('location').size().sort_values(ascending=False)
 
 df[df['aglomerado'] == 8]['itf'].mean()
+#%%
+import pandas as pd
+
+path = r'C:\Users\HP\OneDrive\Escritorio\David Guzzi\Github\MECMT04\TP AEM - FD DG.xlsx'
+df = pd.read_excel(path)
+
+df.iloc[:, 4:5].cov()
