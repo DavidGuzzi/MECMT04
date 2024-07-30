@@ -86,4 +86,20 @@ cv = std / mean
 
 desc_2 = pd.concat([mean, std, cv], axis=1)
 desc_2.columns = ['mean', 'standard_deviation', 'cv']
-desc_2
+
+cov = dfn.cov()
+corr = dfn.corr()
+
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+dfn_scaled = scaler.fit_transform(dfn)
+
+pca = PCA()
+a = pca.fit(dfn_scaled)
+
+a = pca.explained_variance_
+proportion_of_variance = a / np.sum(a)
+
+pca.components_.T * np.sqrt(a)
