@@ -21,9 +21,15 @@ df, meta = st.read_dta(path)
 meta
 #%%
 import pandas as pd
-import numpy as np
+import pyreadstat as st
 
-path = r"C:\Users\HP\OneDrive\Escritorio\David Guzzi\DiTella\MEC\Materias\2024 2T\[MT04] Análisis Estadístico Multivariado\Exámen final\TP AEM - FD DG.xlsx"
+path = r'C:\Users\HP\OneDrive\Escritorio\David Guzzi\Github\MECMT04\Hogar_t403_0.dta'
 
-df = pd.read_excel(path)
-df
+df, meta = st.read_dta(path)
+
+agl = pd.DataFrame(list(meta.value_labels['aglomerado'].items()), columns=['id', 'location'])
+
+agl_2 = pd.merge(df, agl, left_on='aglomerado', right_on='id')
+agl_2.groupby('location').size().sort_values(ascending=False)
+
+df[df['aglomerado'] == 8]['itf'].mean()
