@@ -117,7 +117,7 @@ pca.components_.T * np.sqrt(a)
 import pandas as pd
 import numpy as np
 
-path = r"C:\Users\HP\OneDrive\Escritorio\David Guzzi\Github\MECMT04\TP AEM - FD DG.xlsx"
+path = r"C:\Users\HP\OneDrive\Escritorio\David Guzzi\Github\MECMT04\TP AEM - FD DG v2.xlsx"
 df = pd.read_excel(path)
 ndf = df.iloc[:,1:].set_index('Country Code')
 
@@ -157,7 +157,7 @@ dependencia_efectiva = dependencia_conjunta**(1/(len(ndf.columns)-1))
 medidas_globales = pd.DataFrame([[varianza_total, varianza_media, varianza_generalizada, varianza_efectiva, dependencia_conjunta, dependencia_efectiva]],
                                 columns=['varianza_total', 'varianza_media', 'varianza_generalizada', 'varianza_efectiva', 'dependencia_conjunta', 'dependencia_efectiva'])
 
-output_path = r'C:\Users\HP\OneDrive\Escritorio\David Guzzi\Github\MECMT04\OUTPUT_TP.xlsx'
+output_path = r'C:\Users\HP\OneDrive\Escritorio\David Guzzi\Github\MECMT04\OUTPUT_TP v2.xlsx'
 with pd.ExcelWriter(output_path) as writer:
     desc.to_excel(writer, sheet_name='describe', index=False)
     desc_1.to_excel(writer, sheet_name='describe 1', index=False)
@@ -165,3 +165,4 @@ with pd.ExcelWriter(output_path) as writer:
     mcov.to_excel(writer, sheet_name='covarianzas', index=False)
     mcor.to_excel(writer, sheet_name='correlación', index=False)
     medidas_globales.to_excel(writer, sheet_name='medidas_globales', index=False)
+# %%
