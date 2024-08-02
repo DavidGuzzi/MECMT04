@@ -7,17 +7,25 @@ df = pd.read_excel(path)
 ndf = df.iloc[:,1:].set_index('Country Code')
 
 #Para todos los datos
-desc = ndf.describe().reset_index()
+desc = ndf.describe()
 cv = pd.DataFrame(ndf.std() / ndf.mean()).T
 cv.index = ['cv']
-desc = pd.concat([desc, cv], axis=0).reset_index()
+kurt = pd.DataFrame(ndf.kurt()).T
+kurt.index = ['kurt']
+skew = pd.DataFrame(ndf.skew()).T
+skew.index = ['skew']
+desc = pd.concat([desc, cv, kurt, skew], axis=0).reset_index()
 
 #Para todos los datos sin Argentina
 ndf_1 = ndf.drop('ARG')
-desc_1 = ndf_1.describe().reset_index()
+desc_1 = ndf_1.describe()
 cv_1 = pd.DataFrame(ndf_1.std() / ndf_1.mean()).T
 cv_1.index = ['cv']
-desc_1 = pd.concat([desc_1, cv_1], axis=0).reset_index()
+kurt_1 = pd.DataFrame(ndf_1.kurt()).T
+kurt_1.index = ['kurt']
+skew_1 = pd.DataFrame(ndf_1.skew()).T
+skew_1.index = ['skew']
+desc_1 = pd.concat([desc_1, cv_1, kurt_1, skew_1], axis=0).reset_index()
 
 #Para Argentina
 ndf_2 = ndf.loc[['ARG']].reset_index()
