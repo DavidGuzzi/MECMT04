@@ -125,25 +125,25 @@ ndf = df.iloc[:,1:].set_index('Country Code')
 desc = ndf.describe()
 cv = pd.DataFrame(ndf.std() / ndf.mean()).T
 cv.index = ['cv']
-desc = pd.concat([desc, cv], axis=0)
+desc = pd.concat([desc, cv], axis=0).reset_index()
 
 #Para todos los datos sin Argentina
 ndf_1 = ndf.drop('ARG')
 desc_1 = ndf_1.describe()
 cv_1 = pd.DataFrame(ndf_1.std() / ndf_1.mean()).T
 cv_1.index = ['cv']
-desc_1 = pd.concat([desc_1, cv_1], axis=0)
+desc_1 = pd.concat([desc_1, cv_1], axis=0).reset_index()
 
 #Para Argentina
-ndf_2 = ndf.loc[['ARG']]
+ndf_2 = ndf.loc[['ARG']].reset_index()
 
 """Ver si ARG no se encuentra muy fuera del promedio de la OCDE"""
 
 #Matriz de covarianzas
-mcov = ndf.cov()
+mcov = ndf.cov().reset_index()
 
 #Matriz de correlaciones
-mcor = ndf.corr()
+mcor = ndf.corr().reset_index()
 
 #Medidas de variazión conjunta y medidas de correlación conjunta
 varianza_total = np.trace(mcov)
