@@ -190,19 +190,19 @@ coeficientespca_2 = pd.DataFrame(coeficientes_2, columns=[f'Componente {i+1}' fo
 
 
 #Método del Codo - Varianza explicada comparativa Corr vs. Cov
-plt.plot(range(1, len(varianza_explicada) + 1), varianza_explicada, marker='d', linestyle='--', color='black', label='Varianza explicada')
+plt.plot(range(1, len(varianza_explicada) + 1), varianza_explicada, marker='d', linestyle='--', color='black', label='con Matriz de Correlaciones')
 for i, v in enumerate(varianza_explicada):
     plt.text(i + 1, v + 0.01, f"{v:.2f}", ha='center', va='bottom')
 
 # Segunda variable
-plt.plot(range(1, len(varianza_explicada_2) + 1), varianza_explicada_2, marker='o', linestyle='-', color='blue', label='Otra variable')
+plt.plot(range(1, len(varianza_explicada_2) + 1), varianza_explicada_2, marker='o', linestyle='-', color='blue', label='con Matriz de Covarianzas')
 for i, v in enumerate(varianza_explicada_2):
     plt.text(i + 1, v - 0.03, f"{v:.2f}", ha='center', va='top')
 
 # Etiquetas y título
 plt.xlabel('Número de componente')
 plt.ylabel('Varianza explicada')
-plt.title('Método del Codo - Varianza explicada y otra variable')
+plt.title('Método del Codo')
 
 # Leyenda
 plt.legend()
