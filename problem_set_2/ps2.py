@@ -19,7 +19,7 @@ scaler = StandardScaler()
 ndf_scaled = scaler.fit_transform(ndf)
 
 pca = PCA()
-pca.fit(ndf_scaled)
+componentes = pca.fit_transform(ndf_scaled)
 
 varianza = pca.explained_variance_
 std_componentes = np.sqrt(pca.explained_variance_)
@@ -29,7 +29,7 @@ coeficientes =  pca.components_.T
 
 #Generamos una tabla resumen
 data_var = {
-    'Varianza': varianza,
+    'Varianza (eigenvalues)': varianza,
     'Desviación Estándar': std_componentes,
     'Varianza Explicada': varianza_explicada,
     'Varianza Explicada Acumulada': varianza_explicada_acum
@@ -38,4 +38,4 @@ data_var = {
 variables_PCA = pd.DataFrame(data_var, index=[f'Componente {i+1}' for i in range(len(varianza))]).reset_index()
 
 
-coeficientespca = pd.DataFrame(coeficientes, columns=[f'Componente {i+1}' for i in range(coeficientes.shape[1])], index=ndf.columns).reset_index()
+coeficientespca = pd.DataFrame(coeficientes, columns=[f'Componente (eigenvector) {i+1} ' for i in range(coeficientes.shape[1])], index=ndf.columns).reset_index()
