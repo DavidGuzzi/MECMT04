@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 
-path = r"C:\Users\HP\OneDrive\Escritorio\David Guzzi\Github\MECMT04\TP AEM - FD DG v2.xlsx"
+path = r"C:\Users\HP\OneDrive\Escritorio\David Guzzi\Github\MECMT04\TP AEM - database.xlsx"
 df = pd.read_excel(path)
 ndf = df.iloc[:,1:].set_index('Country Code')
 
@@ -71,7 +71,7 @@ scaler = StandardScaler()
 ndf_scaled = scaler.fit_transform(ndf)
 
 pca = PCA()
-pca.fit(ndf_scaled)
+componentes = pca.fit_transform(ndf_scaled)
 
 varianza = pca.explained_variance_
 std_componentes = np.sqrt(pca.explained_variance_)
@@ -81,20 +81,19 @@ coeficientes =  pca.components_.T
 
 #Generamos una tabla resumen
 data_var = {
-    'Varianza': varianza,
+    'Varianza (eigenvalues)': varianza,
     'Desviación Estándar': std_componentes,
     'Varianza Explicada': varianza_explicada,
     'Varianza Explicada Acumulada': varianza_explicada_acum
 }
 
-variables_PCA = pd.DataFrame(data_var, index=[f'Componente {i+1}' for i in range(len(varianza))]).reset_index()
-
-
-coeficientespca = pd.DataFrame(coeficientes, columns=[f'Componente {i+1}' for i in range(coeficientes.shape[1])], index=ndf.columns).reset_index()
+variables_pca = pd.DataFrame(data_var, index=[f'Componente {i+1}' for i in range(len(varianza))]).reset_index()
+coeficientes_pca = pd.DataFrame(coeficientes, columns=[f'Coeficiente (eigenvector) {i+1}' for i in range(coeficientes.shape[1])], index=ndf.columns).reset_index()
+componentes_pca = pd.DataFrame(componentes, columns=[f'Componente {i+1} ' for i in range(coeficientes.shape[1])], index=df.iloc[:,0]).reset_index()
 
 #Elección de Componentes Principales
 #1. Método del Codo - Varianza
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 # plt.figure(figsize=(10, 6))
 # plt.plot(range(1, len(varianza) + 1), varianza, marker='o', linestyle='--')
@@ -132,27 +131,27 @@ Análisis de Componentes Principales - Matriz de Covarianzas
 
 """
 
-pca_2 = PCA()
-pca_2.fit(ndf)
+# pca_2 = PCA()
+# pca_2.fit(ndf)
 
-varianza_2 = pca_2.explained_variance_
-std_componentes_2 = np.sqrt(pca_2.explained_variance_)
-varianza_explicada_2 = pca_2.explained_variance_ratio_
-varianza_explicada_acum_2 = np.cumsum(pca_2.explained_variance_ratio_)
-coeficientes_2 =  pca.components_.T
+# varianza_2 = pca_2.explained_variance_
+# std_componentes_2 = np.sqrt(pca_2.explained_variance_)
+# varianza_explicada_2 = pca_2.explained_variance_ratio_
+# varianza_explicada_acum_2 = np.cumsum(pca_2.explained_variance_ratio_)
+# coeficientes_2 =  pca.components_.T
 
-#Generamos una tabla resumen
-data_var_2 = {
-    'Varianza': varianza_2,
-    'Desviación Estándar': std_componentes_2,
-    'Varianza Explicada': varianza_explicada_2,
-    'Varianza Explicada Acumulada': varianza_explicada_acum_2
-}
+# #Generamos una tabla resumen
+# data_var_2 = {
+#     'Varianza': varianza_2,
+#     'Desviación Estándar': std_componentes_2,
+#     'Varianza Explicada': varianza_explicada_2,
+#     'Varianza Explicada Acumulada': varianza_explicada_acum_2
+# }
 
-variables_PCA_2 = pd.DataFrame(data_var_2, index=[f'Componente {i+1}' for i in range(len(varianza_2))]).reset_index()
+# variables_PCA_2 = pd.DataFrame(data_var_2, index=[f'Componente {i+1}' for i in range(len(varianza_2))]).reset_index()
 
 
-coeficientespca_2 = pd.DataFrame(coeficientes_2, columns=[f'Componente {i+1}' for i in range(coeficientes_2.shape[1])], index=ndf.columns).reset_index()
+# coeficientespca_2 = pd.DataFrame(coeficientes_2, columns=[f'Componente {i+1}' for i in range(coeficientes_2.shape[1])], index=ndf.columns).reset_index()
 
 #Elección de Componentes Principales
 #1. Método del Codo - Varianza
@@ -190,22 +189,22 @@ coeficientespca_2 = pd.DataFrame(coeficientes_2, columns=[f'Componente {i+1}' fo
 
 
 #Método del Codo - Varianza explicada comparativa Corr vs. Cov
-plt.plot(range(1, len(varianza_explicada) + 1), varianza_explicada, marker='d', linestyle='--', color='black', label='con Matriz de Correlaciones')
-for i, v in enumerate(varianza_explicada):
-    plt.text(i + 1, v + 0.01, f"{v:.2f}", ha='center', va='bottom')
+# plt.plot(range(1, len(varianza_explicada) + 1), varianza_explicada, marker='d', linestyle='--', color='black', label='con Matriz de Correlaciones')
+# for i, v in enumerate(varianza_explicada):
+#     plt.text(i + 1, v + 0.01, f"{v:.2f}", ha='center', va='bottom')
 
-# Segunda variable
-plt.plot(range(1, len(varianza_explicada_2) + 1), varianza_explicada_2, marker='o', linestyle='-', color='blue', label='con Matriz de Covarianzas')
-for i, v in enumerate(varianza_explicada_2):
-    plt.text(i + 1, v - 0.03, f"{v:.2f}", ha='center', va='top')
+# # Segunda variable
+# plt.plot(range(1, len(varianza_explicada_2) + 1), varianza_explicada_2, marker='o', linestyle='-', color='blue', label='con Matriz de Covarianzas')
+# for i, v in enumerate(varianza_explicada_2):
+#     plt.text(i + 1, v - 0.03, f"{v:.2f}", ha='center', va='top')
 
-# Etiquetas y título
-plt.xlabel('Número de componente')
-plt.ylabel('Varianza explicada')
-plt.title('Método del Codo')
+# # Etiquetas y título
+# plt.xlabel('Número de componente')
+# plt.ylabel('Varianza explicada')
+# plt.title('Método del Codo')
 
-# Leyenda
-plt.legend()
+# # Leyenda
+# plt.legend()
 
-plt.show()
+# plt.show()
 
