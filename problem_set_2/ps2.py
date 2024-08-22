@@ -41,15 +41,17 @@ variables_PCA = pd.DataFrame(data_var, index=[f'Componente {i+1}' for i in range
 coeficientespca = pd.DataFrame(coeficientes, columns=[f'Coeficiente (eigenvector) {i+1} ' for i in range(coeficientes.shape[1])], index=ndf.columns).reset_index()
 componentespca = pd.DataFrame(componentes, columns=[f'Componente {i+1} ' for i in range(coeficientes.shape[1])], index=df.iloc[:,0]).reset_index()
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
-plt.figure(figsize=(10, 6))
-plt.scatter(componentespca.iloc[:,1], componentespca.iloc[:,2], marker='o', linestyle='--')
-plt.xlabel('Componente 1')
-plt.ylabel('Componente 2')
-plt.title('Componente 1 y 2')
+# plt.figure(figsize=(10, 6))
+# plt.scatter(componentespca.iloc[:,1], componentespca.iloc[:,2], marker='o', linestyle='--')
+# plt.xlabel('Componente 1')
+# plt.ylabel('Componente 2')
+# plt.title('Componente 1 y 2')
 
-for i, txt in enumerate(componentespca.iloc[:,0]):
-    plt.annotate(txt, (componentespca.iloc[i, 1], componentespca.iloc[i, 2]))
+# for i, txt in enumerate(componentespca.iloc[:,0]):
+#     plt.annotate(txt, (componentespca.iloc[i, 1], componentespca.iloc[i, 2]))
 
-plt.show()
+# plt.show()
+
+cor_ndf_with_components = pd.concat([ndf, pd.DataFrame(componentespca).iloc[:,1:3]], axis=1).corr().iloc[:-2, -2:]
