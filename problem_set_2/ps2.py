@@ -40,7 +40,7 @@ variables_PCA = pd.DataFrame(data_var, index=[f'Componente {i+1}' for i in range
 
 coeficientespca = pd.DataFrame(coeficientes, columns=[f'Coeficiente (eigenvector) {i+1} ' for i in range(coeficientes.shape[1])], index=ndf.columns).reset_index()
 componentespca = pd.DataFrame(componentes, columns=[f'Componente {i+1} ' for i in range(coeficientes.shape[1])], index=df.iloc[:,0]).reset_index()
-
+componentespca_scaled = pd.DataFrame(scaler.fit_transform(componentespca.iloc[:,1:]))
 # import matplotlib.pyplot as plt
 
 # plt.figure(figsize=(10, 6))
@@ -54,4 +54,25 @@ componentespca = pd.DataFrame(componentes, columns=[f'Componente {i+1} ' for i i
 
 # plt.show()
 
-cor_ndf_with_components = pd.concat([ndf, pd.DataFrame(componentespca).iloc[:,1:3]], axis=1).corr().iloc[:-2, -2:]
+# cor_ndf_with_components = pd.concat([ndf, pd.DataFrame(componentespca).iloc[:,1:3]], axis=1).corr().iloc[:-2, -2:]
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.figure(figsize=(10, 7))
+sns.scatterplot(x=componentespca.iloc[:,1], y=componentespca.iloc[:,2], data=componentespca, s=100, color='blue')
+
+for i in range(coeficientes.shape[0]):
+    plt.arrow(0, 0, coeficientes[i, 0]*max(componentespca.iloc[:,1]*0.5), coeficientes[i, 1]*max(componentespca.iloc[:,2]*0.5),
+              color='red', head_width=0.1, head_length=0.1)
+    plt.text(coeficientes[i, 0]*max(componentespca.iloc[:,1])*0.5*1.1, coeficientes[i, 1]*max(componentespca.iloc[:,2])*0.5*1.1,
+             ndf.columns[i], color='green', ha='center', va='center', fontsize=12)
+
+plt.axhline(0, color='gray', lw=0.5)
+plt.axvline(0, color='gray', lw=0.5)
+plt.xlabel('PC1')
+plt.ylabel('PC2')
+plt.title('Biplot de las dos primeras componentes principales')
+plt.grid(True)
+plt.show()
+
