@@ -106,3 +106,13 @@ from sklearn.metrics import pairwise_distances
 
 # Cálculo de la distancia euclidiana
 distance_matrix = pairwise_distances(md_scaled, metric='euclidean')
+
+from scipy.cluster.hierarchy import linkage, dendrogram
+import matplotlib.pyplot as plt
+
+
+Z = linkage(distance_matrix, method='single')  
+
+plt.figure(figsize=(10, 7))
+dendrogram(Z)
+plt.show()
