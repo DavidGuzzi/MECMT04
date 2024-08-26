@@ -89,3 +89,20 @@ def clusternum_Ftest(data, maxclusters):
     ftest_results['Ftest'] = (ftest_results['SCDG'] - ftest_results['lead']) / (ftest_results['SCDG'] / (n - ftest_results['Clusters'] + 1))
     
     return ftest_results
+#%%
+import pandas as pd
+import pyreadstat as st
+
+path = r"C:\Users\HP\OneDrive\Escritorio\David Guzzi\Github\MECMT04\problem_set_3\firmas.dta"
+
+df, meta = st.read_dta(path)
+md = df.loc[:,['ebitass', 'rotc']]
+
+media = md.mean()
+de = md.std()
+md_scaled = ((md - media) / de).values
+
+from sklearn.metrics import pairwise_distances
+
+# Cálculo de la distancia euclidiana
+distance_matrix = pairwise_distances(md_scaled, metric='euclidean')
