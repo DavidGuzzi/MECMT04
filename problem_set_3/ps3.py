@@ -61,3 +61,31 @@ plt.ylabel('ROTC')
 plt.legend()
 plt.grid(True)
 plt.show()
+
+
+def clusternum_Ftest(data, maxclusters):
+    n = data.shape[0]
+    scdg = np.zeros(maxclusters)
+    
+    # Escalar los datos
+    media = data.mean()
+    de = data.std()
+    md_scaled = ((data - media) / de).values
+    
+    # Calcular SCDG (Within-cluster sum of squares) para diferentes números de clusters
+    for j in range(1, maxclusters + 1):
+        kmeans = KMeans(n_clusters=j, random_state=7)
+        kmeans.fit(md_scaled)
+        scdg[j-1] = kmeans.inertia_
+    
+    # Crear DataFrame para almacenar resultados
+    ftest_results = pd.DataFrame({
+        'Clusters': np.arange(1, maxclusters + 1),
+        'SCDG': scdg
+    })
+    
+    # Calcular el F-test
+    ftest_results['lead'] = ftest_results['SCDG'].shift(-1)
+    ftest_results['Ftest'] = (ftest_results['SCDG'] - ftest_results['lead']) / (ftest_results['SCDG'] / (n - ftest_results['Clusters'] + 1))
+    
+    return ftest_results
