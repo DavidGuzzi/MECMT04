@@ -8,10 +8,14 @@ path = r"C:\Users\HP\OneDrive\Escritorio\David Guzzi\Github\MECMT04\problem_set_
 df, meta = st.read_dta(path)
 md = df.loc[:,['ebitass', 'rotc']]
 
-from sklearn.preprocessing import StandardScaler
+# from sklearn.preprocessing import StandardScaler
 
-scaler = StandardScaler()
-md_scaled = scaler.fit_transform(md)
+# scaler = StandardScaler()
+# md_scaled = scaler.fit_transform(md)
+
+media = md.mean()
+de = md.std()
+md_scaled = ((md - media) / de).values
 
 from sklearn.cluster import KMeans
 
