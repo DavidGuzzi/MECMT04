@@ -113,6 +113,6 @@ import matplotlib.pyplot as plt
 
 Z = linkage(distance_matrix, method='complete')  
 
-plt.figure(figsize=(10, 7))
+plt.figure(figsize=(10, 5))
 dendrogram(Z)
 plt.show()
