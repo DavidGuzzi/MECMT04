@@ -111,8 +111,61 @@ from scipy.cluster.hierarchy import linkage, dendrogram
 import matplotlib.pyplot as plt
 
 
-Z = linkage(distance_matrix, method='average')  
+Z = linkage(distance_matrix, method='single')  
 
 plt.figure(figsize=(10, 5))
 dendrogram(Z)
+plt.show()
+
+#%%
+import pandas as pd
+import pyreadstat as st
+
+path = r"C:\Users\HP\OneDrive\Escritorio\David Guzzi\Github\MECMT04\problem_set_3\firmas.dta"
+
+df, meta = st.read_dta(path)
+md = df.loc[:,['ebitass', 'rotc']]
+
+media = md.mean()
+de = md.std()
+md_scaled = pd.DataFrame(((md - media) / de))
+
+from sklearn.cluster import AgglomerativeClustering
+from sklearn.metrics import pairwise_distances
+import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+# Clustering jerárquico
+model = AgglomerativeClustering(distance_threshold=0, n_clusters=None)
+model.fit(md_scaled.iloc[:, 1:])
+
+# Convertir los resultados a un formato de linkage
+linkage_matrix = linkage(model.children_, 'single')
+
+# Graficar dendrograma
+dendrogram(linkage_matrix)
+plt.show()
+#%%
+import pandas as pd
+
+import pyreadstat as st
+
+path = r"C:\Users\HP\OneDrive\Escritorio\David Guzzi\Github\MECMT04\problem_set_3\firmas.dta"
+
+df, meta = st.read_dta(path)
+md = df.loc[:,['ebitass', 'rotc']]
+
+media = md.mean()
+de = md.std()
+md_scaled = pd.DataFrame(((md - media) / de))
+
+import hdbscan
+import matplotlib.pyplot as plt
+
+# Ajustar el modelo
+clusterer = hdbscan.HDBSCAN()
+clusterer.fit(md_scaled)
+
+# Mostrar el árbol mínimo de alcance
+clusterer.condensed_tree_.plot(select_clusters=True, colorbar=True)
 plt.show()
