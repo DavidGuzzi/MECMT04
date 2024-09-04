@@ -111,7 +111,7 @@ from scipy.cluster.hierarchy import linkage, dendrogram
 import matplotlib.pyplot as plt
 
 
-Z = linkage(distance_matrix, method='complete')  
+Z = linkage(distance_matrix, method='average')  
 
 plt.figure(figsize=(10, 5))
 dendrogram(Z)
